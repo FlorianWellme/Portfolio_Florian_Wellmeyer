@@ -317,3 +317,74 @@ footer {
     font-size: 0.95rem;
     line-height: 1.4;
 }
+
+/* --- SKILLS SECTION (LOGO GRID) --- */
+#skills {
+    text-align: center;
+}
+
+.skills-subtitle {
+    color: #aaa;
+    font-size: 1rem;
+    margin-bottom: 40px;
+}
+
+.skills-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 30px;
+    justify-items: center;
+}
+
+.skill-card {
+    background: linear-gradient(145deg, #1a1a1a, #111);
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.skill-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 4px 15px rgba(0,188,212,0.5);
+}
+
+.skill-card img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    filter: brightness(0.9);
+    transition: filter 0.3s;
+}
+
+.skill-card:hover img {
+    filter: brightness(1.1);
+}
+
+.skill-card p {
+    color: #fff;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+    .skills-container {
+        gap: 20px;
+    }
+    .skill-card {
+        width: 100px;
+        height: 100px;
+    }
+    .skill-card img {
+        width: 40px;
+        height: 40px;
+    }
+}
