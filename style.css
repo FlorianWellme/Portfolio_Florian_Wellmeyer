@@ -84,6 +84,86 @@ nav a:hover {
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
+
+/* --- ABOUT SECTION --- */
+.about-section {
+  position: relative;
+  height: 80vh;
+  background: url("images/about/marine3.png") center center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+}
+
+.about-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* plus léger, sans flou */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10%;
+}
+
+
+.about-content {
+  max-width: 800px;
+  z-index: 2;
+}
+
+.about-content h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #00bcd4; /* ton bleu principal */
+  text-transform: uppercase;
+}
+
+.about-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  color: #e0e0e0;
+}
+
+/* Caption sous l’image */
+.about-caption {
+  background: #0f0f0f;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #aaa;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 2;
+  margin-top: 0; /* colle à la section */
+}
+
+.about-caption strong {
+  color: #00bcd4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-section {
+    height: auto;
+    padding: 80px 20px;
+  }
+
+  .about-content h2 {
+    font-size: 2rem;
+  }
+
+  .about-content p {
+    font-size: 1rem;
+  }
+}
+/*----------------------------*/
+
 /* --- PROJETS --- */
 .projects-grid {
     display: grid;
@@ -166,6 +246,8 @@ footer {
 .timeline-content {
     padding-left: 30px;
     text-align: left;
+    text-align: justify; /* ✅ justifie le texte */
+    font-size: 2rem; /* ✅ taille uniforme */
 }
 
 .timeline-content h3 {
@@ -388,7 +470,7 @@ footer {
         height: 40px;
     }
 }
-
+/*-----------------------------*/
 /* ---- EDUCATION SECTION ---- */
 .edu-lang-container {
   display: flex;
@@ -422,6 +504,10 @@ footer {
   margin-bottom: 8px;
   font-size: 1rem;
   color: #e0e0e0;
+}
+
+.languages-column {
+  text-align: left; 
 }
 
 /* Timeline */
@@ -497,3 +583,207 @@ footer {
   background-color: rgba(255,255,255,0.1);
   padding: 5px;
 }
+/*--------------------*/
+
+/* --- Timeline with logos EXPERIENCE --- */
+.timeline-content-with-logo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap; /* pour s’adapter sur petit écran */
+}
+
+.timeline-content {
+  flex: 3;
+}
+
+.timeline-logo {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* ✅ empile les logos verticalement */
+  justify-content: flex-start;
+  align-items: flex-end; /* ✅ les garde bien à droite */
+  gap: 10px; /* ✅ espace entre les deux logos */
+}
+
+.timeline-logo img {
+  width: 130px; /* ✅ taille adaptée pour garder la proportion */
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0.95);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.timeline-logo img:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.timeline-logo img[src*="interdigital.png"] {
+  width: 160px; /* agrandir */
+}
+
+.timeline-logo img[src*="bosch.png"] {
+  width: 160px; /* réduire */
+}
+
+.timeline-logo img[src*="ts.png"] {
+  width: 160px;
+}
+
+.timeline-logo img[src*="hp.png"] {
+  width: 100px;
+}
+
+.timeline-logo img[src*="brestoceanboat.png"] {
+  width: 160px;
+}
+
+
+/* Responsive: logos passent en dessous du texte */
+@media (max-width: 700px) {
+  .timeline-content-with-logo {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timeline-logo {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .timeline-logo img {
+    width: 100px;
+    height: 100px;
+  }
+}
+/*-----------------------------*/
+/* --- MODAL PROJECT POPUP --- */
+.modal {
+  display: none; /* caché par défaut */
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  border-radius: 15px;
+  padding: 30px;
+  width: 80%;
+  max-width: 800px;
+  color: #fff;
+  position: relative;
+  box-shadow: 0 0 15px rgba(0, 188, 212, 0.4);
+  animation: slideUp 0.4s ease;
+  text-align: left;
+}
+
+.close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #00bcd4;
+  transition: color 0.3s;
+}
+
+.close:hover {
+  color: #fff;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content img {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+/*---------------------*/
+/* --- PROJECTS DETAILS SECTION (expandable) --- */
+.project-details {
+  width: 70%;                 /* largeur fixe (ajuste selon ton goût : 60%, 70%...) */
+  max-width: 800px;           /* limite sur grand écran */
+  height: 70vh;               /* hauteur fixe : 70% de la hauteur visible */
+  overflow-y: auto;           /* permet de scroller à l’intérieur */
+  background-color: #1c1c1c;
+  margin: 40px auto;          /* centré et espacé du reste */
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 0 15px rgba(0, 188, 212, 0.3);
+  position: relative;
+  animation: slideDown 0.4s ease;
+}
+
+/* pour un style fluide et lisible */
+.project-details::-webkit-scrollbar {
+  width: 8px;
+}
+.project-details::-webkit-scrollbar-thumb {
+  background-color: #00bcd4;
+  border-radius: 10px;
+}
+
+.project-details h3 {
+  color: #00bcd4;
+  margin-bottom: 10px;
+}
+
+.project-details p {
+  color: #ddd;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.project-details img {
+  width: 70%; /* ← ajuste ici : 100% = pleine largeur, 70% = réduit */
+  max-width: 500px; /* ← limite la taille maximale, optionnel */
+  display: block;
+  margin: 20px auto; /* centre l’image */
+  border-radius: 10px;
+}
+
+.project-details .close-detail {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #00bcd4;
+  transition: color 0.3s ease;
+}
+
+.project-details .close-detail:hover {
+  color: #fff;
+}
+
+/* Animation douce */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/*------------*/
