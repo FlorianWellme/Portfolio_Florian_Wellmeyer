@@ -50,9 +50,6 @@
     </div>
 
 
-    
-    
-
     <section id="skills" class="section">
         <h2>My Skills</h2>
         <div class="skills-container">
@@ -356,21 +353,29 @@
     </section>
 
 
+    <section id="projectsPerso" class="section">
+    <h2>Personal Projects</h2>
+    <div class="projects-gallery">
 
-    <section id="PersonnalProjects" class="section">
-        <h2>Projets personnels</h2>
-        <div class="projects-grid">
-            <div class="project-card">
-                <img src="images/projet1.jpg" alt="Projet 1">
-                <h3>Application de gestion de tâches</h3>
-                <p>Application web responsive permettant de gérer ses tâches quotidiennes. Technologies : HTML, CSS, JS.</p>
-            </div>
-            <div class="project-card">
-                <img src="images/projet2.jpg" alt="Projet 2">
-                <h3>Portfolio personnel</h3>
-                <p>Ce site que vous consultez ! Déployé sur GitHub Pages.</p>
-            </div>
+        <!--  PROJECT 1 -->
+        <div class="project-item" data-project="ultrasonic">
+        <img src="images/projects/ultrasoniclidar.png" alt="Ultrasonic LiDAR System">
+        <div class="project-overlay">
+            <h3>Ultrasonic LiDAR</h3>
+            <p>Scanning system using ultrasonic sensor and ROS2 visualization.</p>
         </div>
+        </div>
+
+        <!--  PROJECT 2 -->
+        <div class="project-item" data-project="turtlebot">
+        <img src="images/projects/turtlebot.png" alt="TurtleBot ROS2 Guide">
+        <div class="project-overlay">
+            <h3>TurtleBot ROS2 Guide</h3>
+            <p>Following the complete ROS2 workflow for simulation and navigation.</p>
+        </div>
+        </div>
+
+    </div>
     </section>
 
 
@@ -383,7 +388,17 @@
 
     <footer>
         <p>© 2025 Florian Wellmeyer — Tous droits réservés.</p>
+            <span id="hiddenMessage">Ana behbikk la ekher nafas albé Amari</span>
     </footer>
+
+        <!-- Popup caché -->
+    <div id="hiddenPopup" class="hidden-popup">
+    <div class="hidden-popup-content">
+        <span class="close-popup">&times;</span>
+        <img src="images/projects/trace.png" alt="Hidden message" />
+    </div>
+    </div>
+
 <script src="js/projects.js"></script>
 
 </body>

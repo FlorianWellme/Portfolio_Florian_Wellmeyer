@@ -441,7 +441,84 @@ document.addEventListener("DOMContentLoaded", () => {
     </ul>
     `,
 
+    ultrasonic: `
+    <h3>Ultrasonic LiDAR – ROS2 Scanning System</h3>
 
+    <div class="popup-image-gallery">
+      <img src="images/projects/ultrasoniclidar.png" alt="Ultrasonic LiDAR prototype" class="popup-image">
+    </div>
+
+    <h4 class="popup-section-title">Objective</h4>
+    <p>
+      The goal of this project is to create an <strong>ultrasonic LiDAR</strong> prototype using 
+      a <strong>Raspberry Pi</strong>, a <strong>servo motor</strong>, and an <strong>ultrasonic sensor (HC-SR04)</strong>.
+      The sensor performs a <strong>rotational sweep</strong> to detect nearby obstacles and 
+      reconstruct the surrounding environment in <strong>RViz</strong> through <strong>ROS2</strong>.
+    </p>
+
+    <h4 class="popup-section-title">System Overview</h4>
+    <p>
+      The ultrasonic sensor is mounted on a servo motor controlled by the Raspberry Pi.
+      For each rotation step, the Pi collects a distance measurement, associates it to an angle,
+      and publishes the data through <strong>ROS2 topics</strong> for visualization.
+    </p>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/ultrasonicdiagram.png" alt="Ultrasonic LiDAR architecture" class="popup-image">
+      <p class="img-caption">fig.1) System architecture: Raspberry Pi controlling servo and ultrasonic modules via ROS2.</p>
+    </div>
+
+    <h4 class="popup-section-title">Implementation</h4>
+    <p>
+      The prototype is fully coded in <strong>Python</strong>, with the use of <strong>rclpy</strong> nodes for 
+      communication and <strong>matplotlib</strong> or <strong>RViz</strong> for live visualization.
+      The scanning frequency, angular step, and detection threshold can be tuned for optimal precision.
+    </p>
+
+    <h4 class="popup-section-title">Future Work</h4>
+    <p>
+      Next steps include integrating <strong>object classification</strong> and <strong>SLAM</strong> 
+      modules to evolve toward autonomous mapping.
+    </p>
+  `,
+
+  turtlebot: `
+    <h3>TurtleBot – Complete ROS2 Workflow</h3>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/turtlebot.png" alt="TurtleBot Simulation" class="popup-image">
+    </div>
+
+    <h4 class="popup-section-title">Objective</h4>
+    <p>
+      This personal project consisted of <strong>following the complete ROS2 TurtleBot guide</strong> to master 
+      all the essential components of <strong>ROS2-based robotics development</strong>.
+    </p>
+
+    <h4 class="popup-section-title">Steps Covered</h4>
+    <ul>
+      <li>Understanding ROS2 workspace and node architecture.</li>
+      <li>Writing publishers, subscribers, and service nodes in Python.</li>
+      <li>Simulating the TurtleBot in <strong>Gazebo</strong> and visualizing in <strong>RViz</strong>.</li>
+      <li>Implementing <strong>navigation</strong> and <strong>mapping (SLAM)</strong> pipelines.</li>
+      <li>Integrating sensor data for localization and path planning.</li>
+    </ul>
+
+    <h4 class="popup-section-title">Outcome</h4>
+    <p>
+      The guide allowed me to gain practical understanding of 
+      <strong>ROS2 node communication</strong>, <strong>sensor integration</strong>, and 
+      <strong>simulation-to-real deployment</strong>.
+    </p>
+
+    <h4 class="popup-section-title">Tools & Skills</h4>
+    <ul>
+      <li><strong>ROS2 Humble</strong></li>
+      <li><strong>Gazebo & RViz</strong></li>
+      <li><strong>Python</strong> (rclpy)</li>
+      <li><strong>Navigation2 / SLAM Toolbox</strong></li>
+    </ul>
+  `,
 
   };
 
@@ -486,4 +563,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeModal();
   });
+
+  const hiddenMessage = document.getElementById("hiddenMessage");
+  const hiddenPopup = document.getElementById("hiddenPopup");
+  const closePopup = document.querySelector(".close-popup");
+
+  hiddenMessage.addEventListener("click", () => {
+    hiddenPopup.style.display = "flex";
+  });
+
+  closePopup.addEventListener("click", () => {
+    hiddenPopup.style.display = "none";
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target === hiddenPopup) {
+      hiddenPopup.style.display = "none";
+    }
+  });
+
 });
