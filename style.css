@@ -821,7 +821,7 @@ footer {
 
 /* Si tu veux qu’il apparaisse subtilement au survol */
 #hiddenMessage:hover {
-  color: #1a1a1a; /* très léger contraste */
+  color: #707070; /* très léger contraste */
 }
 
 /* Style du popup secret */

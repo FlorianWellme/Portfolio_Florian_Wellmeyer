@@ -440,88 +440,132 @@ document.addEventListener("DOMContentLoaded", () => {
       <li>Animation blending and timeline control</li>
     </ul>
     `,
-
+    
     ultrasonic: `
-    <h3>Ultrasonic LiDAR – ROS2 Scanning System</h3>
+    <h3>Ultrasonic LiDAR – ROS2 Scanning System (Arduino + Raspberry Pi)</h3>
 
     <div class="popup-image-gallery">
       <img src="images/projects/ultrasoniclidar.png" alt="Ultrasonic LiDAR prototype" class="popup-image">
+      <p class="img-caption">Ultrasonic LiDAR prototype (HC-SR04 on servo)</p>
     </div>
 
     <h4 class="popup-section-title">Objective</h4>
     <p>
-      The goal of this project is to create an <strong>ultrasonic LiDAR</strong> prototype using 
-      a <strong>Raspberry Pi</strong>, a <strong>servo motor</strong>, and an <strong>ultrasonic sensor (HC-SR04)</strong>.
-      The sensor performs a <strong>rotational sweep</strong> to detect nearby obstacles and 
-      reconstruct the surrounding environment in <strong>RViz</strong> through <strong>ROS2</strong>.
+      Build a lightweight <strong>LIDAR-like scanner</strong> by combining an 
+      <strong>Arduino Mega</strong> (servo + HC-SR04 control) and a 
+      <strong>Raspberry Pi</strong> running a Python <strong>ROS2 bridge</strong>.
+      The Arduino streams servo angle + distance through <code>/dev/ttyACM0</code>;  
+      the Raspberry Pi converts these values into <strong>ROS2 topics</strong> and visualizes them in <strong>RViz2</strong>.
     </p>
 
-    <h4 class="popup-section-title">System Overview</h4>
+    <h4 class="popup-section-title">Hardware & Data Flow</h4>
+    <ul>
+      <li><strong>Arduino Mega</strong>: drives the servo sweep and reads the ultrasonic sensor.</li>
+      <li><strong>Serial link</strong> via <code>/dev/ttyACM0</code> sending angle + distance frames.</li>
+      <li><strong>Raspberry Pi 4</strong>: Python script parses serial data and publishes ROS2 topics:</li>
+      <ul>
+        <li><code>/servo_angle</code> — <strong>Float32</strong> (angle in degrees)</li>
+        <li><code>/sonar_range</code> — <strong>sensor_msgs/Range</strong> (distance in meters)</li>
+        <li><code>/sonar_points</code> — <strong>MarkerArray</strong> used to display detected points</li>
+      </ul>
+      <li><strong>RViz2</strong>: shows the sweeping direction arrow + mapped points.</li>
+    </ul>
+
+    <h4 class="popup-section-title">Demo 1 — Angle & Distance Arrow</h4>
     <p>
-      The ultrasonic sensor is mounted on a servo motor controlled by the Raspberry Pi.
-      For each rotation step, the Pi collects a distance measurement, associates it to an angle,
-      and publishes the data through <strong>ROS2 topics</strong> for visualization.
+      The first demo shows a <strong>real-time arrow</strong> that uses:
+      <br>• the <strong>servo angle</strong> to rotate over 180°  
+      <br>• the <strong>ultrasonic distance</strong> to scale its length (closer → shorter, farther → longer).
     </p>
 
     <div class="popup-image-gallery">
-      <img src="images/projects/ultrasonicdiagram.png" alt="Ultrasonic LiDAR architecture" class="popup-image">
-      <p class="img-caption">fig.1) System architecture: Raspberry Pi controlling servo and ultrasonic modules via ROS2.</p>
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/ultrasonic_angle_demo.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <p class="img-caption">Demo 1 — Arrow reacting to distance (length) and servo position (rotation).</p>
     </div>
 
-    <h4 class="popup-section-title">Implementation</h4>
+    <h4 class="popup-section-title">Demo 2 — 2D Point Mapping</h4>
     <p>
-      The prototype is fully coded in <strong>Python</strong>, with the use of <strong>rclpy</strong> nodes for 
-      communication and <strong>matplotlib</strong> or <strong>RViz</strong> for live visualization.
-      The scanning frequency, angular step, and detection threshold can be tuned for optimal precision.
+      The second demo displays the <strong>accumulated point measurements</strong> captured during the 
+      180° sweep. Each ultrasonic reading becomes a plotted point, producing a simple but functional 
+      <strong>2D map of the environment</strong> inside RViz2.
     </p>
 
-    <h4 class="popup-section-title">Future Work</h4>
+    <div class="popup-image-gallery">
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/ultrasonic_map_demo.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <p class="img-caption">Demo 2 — Points generated from ultrasonic data forming the scanned area.</p>
+    </div>
+
+    <h4 class="popup-section-title">Current Status & Next Steps</h4>
     <p>
-      Next steps include integrating <strong>object classification</strong> and <strong>SLAM</strong> 
-      modules to evolve toward autonomous mapping.
+      The full pipeline (Arduino → Serial → ROS2 → RViz) is operational.  
+      Next steps include measurement smoothing, noise filtering, and potential shape detection.
+    </p>
+
+    <h4 class="popup-section-title">Repository</h4>
+    <p>
+      Full project available on GitHub:<br>
+      <a href="https://github.com/FlorianWellme/Ultrasoniclidar_ROS" target="_blank">
+        Ultrasoniclidar_ROS
+      </a>
     </p>
   `,
 
-  turtlebot: `
-    <h3>TurtleBot – Complete ROS2 Workflow</h3>
+
+
+    guidance: `
+    <h3>Guidance & Stabilization System – In progress</h3>
 
     <div class="popup-image-gallery">
-      <img src="images/projects/turtlebot.png" alt="TurtleBot Simulation" class="popup-image">
+      <img src="images/projects/guidance.png" alt="Guidance prototype" class="popup-image">
     </div>
 
     <h4 class="popup-section-title">Objective</h4>
     <p>
-      This personal project consisted of <strong>following the complete ROS2 TurtleBot guide</strong> to master 
-      all the essential components of <strong>ROS2-based robotics development</strong>.
+      Design a guidance and stabilization system (prototype) for a small rocket-like platform using:
+      an <strong>accelerometer</strong>, a camera, <strong>4 servomotors</strong> driven by a <strong>PCA9685</strong>,
+      an <strong>Arduino</strong> (controller) and a <strong>Raspberry Pi 4</strong> as high-level computer, powered by a 10000 mAh battery.
     </p>
 
-    <h4 class="popup-section-title">Steps Covered</h4>
+    <h4 class="popup-section-title">Architecture & Components</h4>
     <ul>
-      <li>Understanding ROS2 workspace and node architecture.</li>
-      <li>Writing publishers, subscribers, and service nodes in Python.</li>
-      <li>Simulating the TurtleBot in <strong>Gazebo</strong> and visualizing in <strong>RViz</strong>.</li>
-      <li>Implementing <strong>navigation</strong> and <strong>mapping (SLAM)</strong> pipelines.</li>
-      <li>Integrating sensor data for localization and path planning.</li>
+      <li><strong>Sensors:</strong> IMU (accelerometer/gyro), camera for visual feedback.</li>
+      <li><strong>Actuation:</strong> 4 servos controlled by a PCA9685 PWM driver (I2C) from the Arduino or Pi.</li>
+      <li><strong>Comms & compute:</strong> Raspberry Pi runs ROS2 nodes for high-level control; Arduino handles low-level PWM/servo safety.</li>
+      <li><strong>Power:</strong> External 10 000 mAh battery for autonomy and peak current supply.</li>
     </ul>
 
-    <h4 class="popup-section-title">Outcome</h4>
+    <h4 class="popup-section-title">Use case</h4>
     <p>
-      The guide allowed me to gain practical understanding of 
-      <strong>ROS2 node communication</strong>, <strong>sensor integration</strong>, and 
-      <strong>simulation-to-real deployment</strong>.
+      Stabilize and control attitude of a small demonstrator (mini rocket testbed). System will estimate orientation
+      from IMU + vision, compute corrective commands and send them to servos to stabilize the platform.
     </p>
 
-    <h4 class="popup-section-title">Tools & Skills</h4>
+    <h4 class="popup-section-title">Status</h4>
+    <p>
+      Project currently <strong>in progress</strong>. Core ROS2 topics & nodes are being implemented (sensor drivers, estimator, controller).
+      Simulation & visualization planned in RViz and optionally Gazebo for full dynamic tests.
+    </p>
+
+    <h4 class="popup-section-title">Skills & Tools</h4>
     <ul>
-      <li><strong>ROS2 Humble</strong></li>
-      <li><strong>Gazebo & RViz</strong></li>
-      <li><strong>Python</strong> (rclpy)</li>
-      <li><strong>Navigation2 / SLAM Toolbox</strong></li>
+      <li>ROS2 (rclpy)</li>
+      <li>Arduino (C/C++)</li>
+      <li>PCA9685 I2C driver</li>
+      <li>IMU data fusion, simple PID/LQR controllers</li>
+      <li>RViz / Gazebo (simulation)</li>
     </ul>
-  `,
+    `,
+
+
 
   };
-
+ //----------------------------------------------------------------
   // ✅ Crée un seul vrai MODAL (compatible avec ton CSS)
   const modal = document.createElement("div");
   modal.classList.add("modal");
@@ -563,7 +607,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeModal();
   });
-
+ //----------------------------------------------------------------
+  // Gestion du message caché -------------------------------------
   const hiddenMessage = document.getElementById("hiddenMessage");
   const hiddenPopup = document.getElementById("hiddenPopup");
   const closePopup = document.querySelector(".close-popup");
@@ -581,5 +626,5 @@ document.addEventListener("DOMContentLoaded", () => {
       hiddenPopup.style.display = "none";
     }
   });
-
+ //----------------------------------------------------------------
 });
