@@ -584,6 +584,50 @@ footer {
   padding: 5px;
 }
 /*--------------------*/
+/* ---- FORMATION ---- */
+.formation-title {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #00bcd4;
+}
+
+.formation-item {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.formation-name {
+  text-align: left;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+}
+
+.formation-name span {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.formation-btn {
+  background: transparent;
+  border: 2px solid #00bcd4;
+  color: #00bcd4;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.formation-btn:hover {
+  background: #00bcd4;
+  color: #0f0f0f;
+}
+/*-----------------------------*/
 
 /* --- Timeline with logos EXPERIENCE --- */
 .timeline-content-with-logo {
@@ -862,5 +906,24 @@ footer {
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+/*---------------------*/
+/* --- CV SECTION --- */
+
+.cv-link {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 12px 22px;
+  border: 2px solid #00bcd4;
+  border-radius: 30px;
+  color: #00bcd4;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cv-link:hover {
+  background-color: #00bcd4;
+  color: #0f0f0f;
 }
 /*---------------------*/

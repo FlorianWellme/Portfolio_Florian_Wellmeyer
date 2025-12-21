@@ -565,6 +565,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   };
+  const formationDetails = {
+  ros_eth: `
+    <h3>Programming for Robotics – ROS</h3>
+    <p><strong>Institution:</strong> ETH Zurich</p>
+
+    <h4 class="popup-section-title">Abstract</h4>
+    <p>
+      This course provides an introduction to the <strong>Robot Operating System (ROS2)</strong>
+      and its most commonly used tools in robotics. Through practical examples, it offers
+      a solid foundation for working with robotic systems, from simulation to real hardware.
+    </p>
+
+    <h4 class="popup-section-title">Objectives</h4>
+    <ul>
+      <li>ROS2 architecture: nodes, topics, messages, services, parameters, actions</li>
+      <li>Console tools for debugging and system analysis</li>
+      <li>Creating ROS packages and launch files</li>
+      <li>ROS2 C++ client library (<strong>rclcpp</strong>)</li>
+      <li>Simulation with <strong>Gazebo</strong> and robot modeling (URDF / SDF)</li>
+      <li>Visualization tools: <strong>RViz</strong> and <strong>rqt</strong></li>
+      <li>Advanced concepts: TF, time handling, rosbag</li>
+    </ul>
+
+    <h4 class="popup-section-title">Content</h4>
+    <p>
+      The course is based on a guided tutorial with exercises of increasing difficulty.
+      It covers the full setup of an autonomous robotic system using ROS2, including
+      sensor integration, actuator control, and the implementation of first
+      closed-loop control algorithms.
+    </p>
+  `
+  };
  //----------------------------------------------------------------
   // ✅ Crée un seul vrai MODAL (compatible avec ton CSS)
   const modal = document.createElement("div");
@@ -625,6 +657,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === hiddenPopup) {
       hiddenPopup.style.display = "none";
     }
+  });
+
+  // ----------------------------------------------------------------
+  // Formation modal handling
+  const formationButtons = document.querySelectorAll(".formation-btn");
+
+  formationButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.formation;
+      modalBody.innerHTML = `<div class="popup-text">${formationDetails[key]}</div>`;
+      modal.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
   });
  //----------------------------------------------------------------
 });
