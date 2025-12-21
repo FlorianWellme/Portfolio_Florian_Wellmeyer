@@ -522,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <h3>Guidance & Stabilization System – In progress</h3>
 
     <div class="popup-image-gallery">
-      <img src="images/projects/guidance.png" alt="Guidance prototype" class="popup-image">
+      <img src="images/projects/Rocket.png" alt="Guidance prototype" class="popup-image">
     </div>
 
     <h4 class="popup-section-title">Objective</h4>
