@@ -519,50 +519,445 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     guidance: `
-    <h3>Guidance & Stabilization System – In progress</h3>
+    <h3>From Rocket Guidance to AUV Navigation System</h3>
 
     <div class="popup-image-gallery">
-      <img src="images/projects/Rocket.png" alt="Guidance prototype" class="popup-image">
+      <img src="images/projects/Rocket.png" alt="Initial rocket guidance concept" class="popup-image">
     </div>
 
-    <h4 class="popup-section-title">Objective</h4>
+    <h4 class="popup-section-title">Project Evolution</h4>
     <p>
-      Design a guidance and stabilization system (prototype) for a small rocket-like platform using:
-      an <strong>accelerometer</strong>, a camera, <strong>4 servomotors</strong> driven by a <strong>PCA9685</strong>,
-      an <strong>Arduino</strong> (controller) and a <strong>Raspberry Pi 4</strong> as high-level computer, powered by a 10000 mAh battery.
+      This project initially aimed to develop a <strong>guidance and stabilization system for a rocket</strong> 
+      using an IMU, camera, and servo-controlled fins. However, during development, the scope evolved into a more 
+      comprehensive <strong>Autonomous Underwater Vehicle (AUV) navigation system</strong>, offering richer challenges 
+      in sensor fusion, path planning, and autonomous control.
     </p>
 
-    <h4 class="popup-section-title">Architecture & Components</h4>
+    <h4 class="popup-section-title">Phase 1 – IMU Data Acquisition & Initial Visualization</h4>
+    <p>
+      The foundation of the system relies on an <strong>MPU6500/MPU9250 IMU</strong> connected to an 
+      <strong>Arduino Mega</strong>. The Arduino firmware reads raw accelerometer and gyroscope data at 
+      <strong>100 Hz</strong> and streams it via serial (<code>115200 baud</code>) using a timer interrupt 
+      for precise sampling intervals (<code>dt = 0.01s</code>).
+    </p>
+
+    <p>
+      Initial data visualization was implemented in <strong>Matplotlib</strong>, displaying raw sensor values 
+      and preliminary angle estimates. This stage revealed significant noise in accelerometer-based angle 
+      calculations, motivating the need for robust filtering.
+    </p>
+
+    <div class="popup-image-gallery">
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/matplotKalman.mp4" type="video/mp4">
+      </video>
+      <p class="img-caption">fig.1) Early Matplotlib visualization showing noisy raw IMU data before filtering.</p>
+    </div>
+
+    <h4 class="popup-section-title">Phase 2 – Kalman Filter Implementation</h4>
+    <p>
+      To fuse accelerometer and gyroscope data effectively, a <strong>1D Kalman filter</strong> was implemented 
+      directly on the Arduino for <strong>roll and pitch estimation</strong>. The filter operates in two stages:
+    </p>
+
     <ul>
-      <li><strong>Sensors:</strong> IMU (accelerometer/gyro), camera for visual feedback.</li>
-      <li><strong>Actuation:</strong> 4 servos controlled by a PCA9685 PWM driver (I2C) from the Arduino or Pi.</li>
-      <li><strong>Comms & compute:</strong> Raspberry Pi runs ROS2 nodes for high-level control; Arduino handles low-level PWM/servo safety.</li>
-      <li><strong>Power:</strong> External 10 000 mAh battery for autonomy and peak current supply.</li>
+      <li><strong>Prediction Step:</strong> Integrates gyroscope angular velocity while compensating for 
+      estimated bias drift:
+      <br><code>angle += (gyroRate - bias) x dt</code>
+      <br>The error covariance matrix <code>P</code> is updated with process noise parameters 
+      (<code>Q_angle = 0.001</code>, <code>Q_bias = 0.003</code>).</li>
+      
+      <li><strong>Correction Step:</strong> Corrects the prediction using accelerometer-derived angles. 
+      Kalman gains are computed based on measurement noise (<code>R_measure = 0.03</code>), and the state 
+      estimate is refined:
+      <br><code>angle += K₀ x (accAngle - angle)</code>
+      <br><code>bias += K₁ x (accAngle - angle)</code></li>
     </ul>
 
-    <h4 class="popup-section-title">Use case</h4>
     <p>
-      Stabilize and control attitude of a small demonstrator (mini rocket testbed). System will estimate orientation
-      from IMU + vision, compute corrective commands and send them to servos to stabilize the platform.
+      <strong>Yaw estimation</strong> relies solely on gyroscope integration (no absolute reference), 
+      accumulating angular velocity over time. This approach is susceptible to drift but sufficient for 
+      short-term orientation tracking.
     </p>
 
-    <h4 class="popup-section-title">Status</h4>
+    <div class="popup-image-gallery">
+      <img src="images/projects/KalmanFilterzoom.png" alt="Kalman filter performance comparison" class="popup-image">
+      <p class="img-caption">fig.2) Comparison between raw accelerometer angles (noisy) and Kalman-filtered 
+      estimates (smooth, responsive).</p>
+    </div>
+
     <p>
-      Project currently <strong>in progress</strong>. Core ROS2 topics & nodes are being implemented (sensor drivers, estimator, controller).
-      Simulation & visualization planned in RViz and optionally Gazebo for full dynamic tests.
+      The Kalman filter significantly reduces accelerometer noise while maintaining gyroscope responsiveness, 
+      producing stable orientation estimates suitable for control applications.
     </p>
 
-    <h4 class="popup-section-title">Skills & Tools</h4>
+    <h4 class="popup-section-title">Phase 3 – Real-Time Web Dashboard with FastAPI</h4>
+    <p>
+      To enable real-time monitoring and interaction, a <strong>FastAPI</strong> backend was developed with:
+    </p>
+
     <ul>
-      <li>ROS2 (rclpy)</li>
-      <li>Arduino (C/C++)</li>
-      <li>PCA9685 I2C driver</li>
-      <li>IMU data fusion, simple PID/LQR controllers</li>
-      <li>RViz / Gazebo (simulation)</li>
+      <li><strong>Serial Communication:</strong> Python thread continuously reads Arduino serial output using 
+      <code>pyserial</code>, parsing CSV-formatted sensor data (ax, ay, az, gx, gy, gz, angles).</li>
+      
+      <li><strong>Data Buffering:</strong> Recent measurements are stored in <code>deque</code> structures 
+      (max 200 points) for efficient real-time plotting.</li>
+      
+      <li><strong>WebSocket Streaming:</strong> Two WebSocket endpoints push data at 20 Hz and 10 Hz:
+        <ul>
+          <li><code>/ws/imu</code>: Streams accelerometer, gyroscope, and angle data to <strong>Plotly.js</strong> charts</li>
+          <li><code>/ws/navigation</code>: Broadcasts navigation state (position, waypoints, trajectory)</li>
+        </ul>
+      </li>
+      
+      <li><strong>Interactive UI:</strong> HTML5/Canvas-based interface displays:
+        <ul>
+          <li>Live <strong>Plotly</strong> time-series graphs (acceleration, angular velocity, filtered angles)</li>
+          <li><strong>Canvas animations</strong>: rotating motor visualization, servo position indicators</li>
+          <li><strong>Attitude gauges</strong>: pitch and yaw displayed using rotated aircraft imagery</li>
+          <li><strong>Navigation map</strong>: Click-to-define waypoints, real-time drone position tracking</li>
+        </ul>
+      </li>
     </ul>
-    `,
 
+    <div class="popup-image-gallery">
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/APIA6K.mp4" type="video/mp4">
+      </video>
+      <p class="img-caption">fig.3) FastAPI dashboard showing real-time IMU data, Kalman-filtered angles, 
+      and interactive navigation map.</p>
+    </div>
 
+    <h4 class="popup-section-title">Phase 4 – Autonomous Navigation System</h4>
+    <p>
+      The <code>DroneNavigator</code> class implements waypoint-based autonomous navigation using:
+    </p>
+
+    <ul>
+      <li><strong>Dead Reckoning:</strong> Position estimation based on yaw angle and constant velocity 
+      (<code>1.4 m/s</code>):
+      <br><code>x += speed x cos(yaw) x dt</code>
+      <br><code>y += speed x sin(yaw) x dt</code></li>
+      
+      <li><strong>Al-Kashi Correction:</strong> Computes bearing error between current heading and target waypoint:
+      <br><code>target_angle = atan2(Δy, Δx)</code>
+      <br><code>angle_error = normalize(target_angle - yaw)</code></li>
+      
+      <li><strong>Servo Control Law:</strong> Proportional control maps angular error to fin deflections:
+      <br><code>servo1 = roll - yaw - (k x angle_error)</code>
+      <br><code>servo2 = roll + pitch + yaw + (k x angle_error)</code>
+      <br>Saturation limits prevent excessive actuator commands (<code>±45°</code> max).</li>
+      
+      <li><strong>Waypoint Sequencing:</strong> When distance to current waypoint falls below threshold 
+      (<code>2.0 m</code>), the system advances to the next target. Mission completion is detected when 
+      all waypoints are reached.</li>
+    </ul>
+
+    <p>
+      The navigation state (position, trajectory, distance to waypoint, servo commands) is broadcast via 
+      WebSocket for live visualization on the interactive map.
+    </p>
+
+    <h4 class="popup-section-title">Phase 5 – ROS2 Gazebo Simulation (Current Development)</h4>
+    <p>
+      The project is currently transitioning to <strong>ROS2 Humble</strong> + <strong>Gazebo</strong> for 
+      high-fidelity simulation before hardware deployment. Development includes:
+    </p>
+
+    <ul>
+      <li><strong>URDF Model:</strong> Custom AUV model with 4 control fins, propeller, IMU sensor, and camera</li>
+      <li><strong>ROS2 Topics:</strong>
+        <ul>
+          <li><code>/fin_control</code> – Fin angle commands (4x <code>Float64</code>)</li>
+          <li><code>/propeller_thrust</code> – Propulsion control</li>
+          <li><code>/imu/data</code> – Simulated IMU sensor fusion</li>
+          <li><code>/camera/image_raw</code> – Visual feedback for advanced navigation</li>
+          <li><code>/odom</code> – Ground-truth position for validation</li>
+        </ul>
+      </li>
+      <li><strong>Custom Gazebo World:</strong> Underwater environment with obstacles and test zones</li>
+      <li><strong>Control Architecture:</strong> ROS2 nodes for state estimation, path planning, and low-level control</li>
+    </ul>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/auv_urdf.png" alt="AUV URDF model" class="popup-image">
+      <p class="img-caption">fig.4) URDF model of the AUV showing control surfaces and sensor placement.</p>
+    </div>
+
+    <h4 class="popup-section-title">Final Objective</h4>
+    <p>
+      The completed system will autonomously navigate between GPS/acoustic beacon waypoints while scanning 
+      designated zones. The camera provides visual feedback for obstacle avoidance and target identification. 
+      The architecture supports future extensions: SLAM integration, multi-vehicle coordination, and adaptive 
+      mission planning.
+    </p>
+
+    <h4 class="popup-section-title">Technologies & Skills</h4>
+    <ul>
+      <li><strong>Embedded Systems:</strong> Arduino (C/C++), I2C/Serial protocols, timer interrupts</li>
+      <li><strong>Signal Processing:</strong> Kalman filtering, sensor fusion, bias estimation</li>
+      <li><strong>Backend Development:</strong> FastAPI, WebSockets, asyncio, pyserial</li>
+      <li><strong>Frontend:</strong> HTML5 Canvas, Plotly.js, real-time data visualization</li>
+      <li><strong>Control Theory:</strong> PID control, dead reckoning, waypoint navigation</li>
+      <li><strong>Robotics:</strong> ROS2 (rclpy/rclcpp), URDF modeling, Gazebo simulation</li>
+      <li><strong>Tools:</strong> RViz, Matplotlib, Git</li>
+    </ul>
+
+    <h4 class="popup-section-title">Repository</h4>
+    <p>
+      <em>Code will be made available once simulation phase is complete and tested.</em>
+    </p>
+  `,
+
+ros_gazebo: `
+    <h3>ROS2 & Gazebo – Robot Simulation & Navigation</h3>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/gazebo_rviz_urdf.png" alt="ROS2 Gazebo integration" class="popup-image">
+    </div>
+
+    <h4 class="popup-section-title">Overview</h4>
+    <p>
+      This section showcases various projects using <strong>ROS2 Humble</strong> and 
+      <strong>Gazebo Classic</strong> for robot simulation, demonstrating skills in robot 
+      modeling, sensor integration, autonomous navigation, and SLAM (Simultaneous Localization 
+      and Mapping).
+    </p>
+
+    <h4 class="popup-section-title">Project 1 – URDF Modeling & Visualization</h4>
+    <p>
+      The foundation of robot simulation in ROS2 begins with creating accurate 
+      <strong>URDF (Unified Robot Description Format)</strong> files. These XML-based files 
+      define the robot's kinematic structure, visual appearance, collision geometry, and 
+      physical properties (mass, inertia).
+    </p>
+
+    <h5>URDF Structure & Components</h5>
+    <ul>
+      <li><strong>Links:</strong> Represent rigid bodies (chassis, arms, wheels) with visual and collision meshes</li>
+      <li><strong>Joints:</strong> Define kinematic relationships (revolute, prismatic, fixed, continuous)</li>
+      <li><strong>Inertial Properties:</strong> Mass distribution and moment of inertia for physics simulation</li>
+      <li><strong>Gazebo Tags:</strong> Simulator-specific parameters (materials, sensors, plugins)</li>
+    </ul>
+
+    <h5>RViz Visualization & Control</h5>
+    <p>
+      Using <code>robot_state_publisher</code> and <code>joint_state_publisher_gui</code>, 
+      the URDF model can be visualized in <strong>RViz</strong> with interactive joint control. 
+      This allows validation of kinematics before physics simulation.
+    </p>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/gazebo_rviz_controlangle.png" alt="RViz joint control interface" class="popup-image">
+      <p class="img-caption">fig.1) RViz displaying URDF model with interactive joint control sliders.</p>
+    </div>
+
+    <div class="popup-image-gallery">
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/gazebo_controlaxe.mp4" type="video/mp4">
+      </video>
+      <p class="img-caption">fig.2) Real-time joint manipulation demonstrating kinematic chain behavior.</p>
+    </div>
+
+    <h5>Gazebo Integration</h5>
+    <p>
+      Transitioning from RViz to Gazebo requires additional URDF modifications:
+    </p>
+    <ul>
+      <li><strong>Material Colors:</strong> Gazebo-specific <code>&lt;gazebo reference="link"&gt;</code> 
+      tags with materials like <code>Gazebo/Black</code>, <code>Gazebo/Orange</code></li>
+      <li><strong>Joint State Publishing:</strong> <code>libgazebo_ros_joint_state_publisher.so</code> 
+      plugin to broadcast joint positions to <code>/joint_states</code> topic</li>
+      <li><strong>Joint Control:</strong> <code>libgazebo_ros_joint_pose_trajectory.so</code> 
+      plugin to receive trajectory commands via <code>/set_joint_trajectory</code></li>
+      <li><strong>Physics Tuning:</strong> Adding damping/friction to prevent unrealistic behavior:
+      <br><code>&lt;dynamics damping="10.0" friction="10.0"/&gt;</code></li>
+    </ul>
+
+    <h5>Advanced Integration – Camera Sensor</h5>
+    <p>
+      The final configuration includes a simulated camera using the 
+      <code>libgazebo_ros_camera.so</code> plugin, publishing:
+    </p>
+    <ul>
+      <li><code>/camera/image_raw</code> – Raw RGB image stream</li>
+      <li><code>/camera/camera_info</code> – Calibration parameters</li>
+    </ul>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/gazebo_rviz_urdf.png" alt="Complete robot with camera in Gazebo" class="popup-image">
+      <p class="img-caption">fig.3) Final robot model in Gazebo with functional camera sensor, 
+      synchronized with RViz visualization.</p>
+    </div>
+
+    <h4 class="popup-section-title">Project 2 – Differential Drive Robot with LiDAR</h4>
+    <p>
+      This project demonstrates a complete mobile robot stack using a 
+      <strong>differential drive platform</strong> equipped with a 2D LiDAR sensor.
+    </p>
+
+    <h5>System Architecture</h5>
+    <ul>
+      <li><strong>Simulation Environment:</strong> Gazebo world with obstacles and test arena</li>
+      <li><strong>Robot Model:</strong> Two-wheeled diff-drive base with caster wheel</li>
+      <li><strong>Sensor Suite:</strong> 360° scanning LiDAR (ray sensor)</li>
+      <li><strong>ROS2 Bridge:</strong> <code>ros_gz_bridge</code> for Gazebo ↔ ROS2 communication</li>
+    </ul>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/gazebo_lidar.png" alt="Diff-drive robot setup in Gazebo" class="popup-image">
+      <p class="img-caption">fig.4) Differential drive robot configuration in Gazebo with LiDAR sensor.</p>
+    </div>
+
+    <h5>Control & Teleoperation</h5>
+    <p>
+      Robot motion is commanded through the <code>/cmd_vel</code> topic using 
+      <code>geometry_msgs/Twist</code> messages. Two control methods were implemented:
+    </p>
+    <ul>
+      <li><strong>Manual Command:</strong> Direct topic publishing for testing specific velocities</li>
+      <li><strong>Keyboard Teleoperation:</strong> <code>teleop_twist_keyboard</code> node 
+      for intuitive WASD-style control with dynamic speed adjustment</li>
+    </ul>
+
+    <h5>LiDAR Integration</h5>
+    <p>
+      The simulated LiDAR publishes <code>sensor_msgs/LaserScan</code> messages containing:
+    </p>
+    <ul>
+      <li>Range measurements (distance to obstacles)</li>
+      <li>Angular resolution and field of view</li>
+      <li>Intensity values (when applicable)</li>
+    </ul>
+
+    <p>
+      A ROS2 bridge node remaps the Gazebo transport topic <code>/lidar2</code> to 
+      <code>/laser_scan</code> for compatibility with navigation stacks:
+    </p>
+    <code style="display:block; background:#1a1a1a; padding:10px; margin:10px 0; border-radius:4px;">
+      ros2 run ros_gz_bridge parameter_bridge /lidar2@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan 
+      --ros-args -r /lidar2:=/laser_scan
+    </code>
+
+    <div class="popup-image-gallery">
+      <video class="popup-video" controls loop muted playsinline>
+        <source src="images/projects/lidar-simple.mp4" type="video/mp4">
+      </video>
+      <p class="img-caption">fig.5) Real-time LiDAR visualization in RViz showing obstacle detection 
+      as the robot navigates the environment.</p>
+    </div>
+
+    <h4 class="popup-section-title">Project 3 – SLAM & Autonomous Navigation</h4>
+    <p>
+      Building on the LiDAR-equipped robot, this project implements autonomous navigation using 
+      <strong>Nav2</strong> (Navigation2 stack) and <strong>slam_toolbox</strong> for 
+      real-time mapping and localization.
+    </p>
+
+    <h5>SLAM Configuration</h5>
+    <p>
+      The <code>slam_toolbox</code> package was configured in <strong>online async mode</strong> 
+      for continuous map building during navigation. Key parameters tuned:
+    </p>
+    <ul>
+      <li><strong>Loop Closure:</strong> Enabled to reduce drift in long trajectories</li>
+      <li><strong>Resolution:</strong> 0.05m grid cells for balance between detail and performance</li>
+      <li><strong>Scan Matching:</strong> Correlation-based alignment with outlier rejection</li>
+    </ul>
+
+    <h5>Navigation Stack Setup</h5>
+    <p>
+      The Nav2 stack provides a complete autonomous navigation solution with:
+    </p>
+    <ul>
+      <li><strong>Global Planner:</strong> A* pathfinding for optimal routes</li>
+      <li><strong>Recovery Behaviors:</strong> Backup, spin, wait strategies when stuck</li>
+      <li><strong>Costmap Layers:</strong> Static (map), obstacle, inflation zones</li>
+    </ul>
+
+    <h5>Mapping Process</h5>
+    <p>
+      The robot was teleoperated through the Turtlebot3 test world to generate an occupancy grid map:
+    </p>
+    <ol>
+      <li>Launch Gazebo simulation with <code>use_sim_time:=True</code></li>
+      <li>Start Nav2 navigation stack</li>
+      <li>Initialize slam_toolbox for real-time SLAM</li>
+      <li>Launch RViz with Nav2 default configuration</li>
+      <li>Teleoperate robot to explore environment</li>
+      <li>Save map using <code>map_saver_cli</code> generating .pgm/.yaml files</li>
+    </ol>
+
+    <div class="popup-image-gallery">
+      <img src="images/projects/turtlebot_slam.png" alt="SLAM mapping result in RViz" class="popup-image">
+      <p class="img-caption">fig.6) Generated occupancy grid map showing free space (white), 
+      obstacles (black), and unexplored areas (grey). TF frames and LaserScan overlay visible.</p>
+    </div>
+
+    <h5>Map Structure</h5>
+    <p>
+      The saved map consists of:
+    </p>
+    <ul>
+      <li><strong>.pgm file:</strong> Grayscale image where pixel intensity represents occupancy probability 
+      (0=free, 255=occupied, 205=unknown)</li>
+      <li><strong>.yaml metadata:</strong> Resolution, origin coordinates, thresholds for 
+      occupied/free classification</li>
+    </ul>
+
+    <h5>Localization & Navigation</h5>
+    <p>
+      Once the map is generated, Nav2's <strong>AMCL (Adaptive Monte Carlo Localization)</strong> 
+      enables the robot to:
+    </p>
+    <ul>
+      <li>Estimate its pose within the known map using particle filtering</li>
+      <li>Accept goal poses from RViz (2D Goal Pose tool)</li>
+      <li>Autonomously plan and execute collision-free paths</li>
+      <li>Replan dynamically when encountering new obstacles</li>
+    </ul>
+
+    <h4 class="popup-section-title">Future Extensions</h4>
+    <ul>
+      <li><strong>3D SLAM:</strong> Integration of depth cameras for volumetric mapping</li>
+      <li><strong>Multi-Robot Systems:</strong> Distributed SLAM with robot swarms</li>
+      <li><strong>GPS Fusion:</strong> Combining indoor SLAM with outdoor GPS navigation</li>
+      <li><strong>Behavior Trees:</strong> Advanced mission planning with ROS2 BehaviorTree.CPP</li>
+      <li><strong>Hardware Deployment:</strong> Transition from simulation to physical robot platforms</li>
+    </ul>
+
+    <h4 class="popup-section-title">Technologies & Tools</h4>
+    <ul>
+      <li><strong>ROS2 Humble:</strong> Core middleware (rclpy, rclcpp)</li>
+      <li><strong>Gazebo Classic:</strong> Physics simulation with ODE engine</li>
+      <li><strong>URDF/SDF:</strong> Robot description and world modeling</li>
+      <li><strong>slam_toolbox:</strong> Graph-based SLAM implementation</li>
+      <li><strong>Nav2:</strong> Complete navigation stack (planners, controllers, recovery)</li>
+      <li><strong>RViz2:</strong> 3D visualization of TF, sensors, planning results</li>
+      <li><strong>ros_gz_bridge:</strong> Gazebo-ROS2 transport layer</li>
+      <li><strong>TF2:</strong> Coordinate frame transformations</li>
+    </ul>
+
+    <h4 class="popup-section-title">Key Learnings</h4>
+    <ul>
+      <li>URDF/SDF conversion and Gazebo plugin architecture</li>
+      <li>Sensor simulation (cameras, LiDAR, IMU) and ROS2 integration</li>
+      <li>Coordinate frame management with TF2 for complex kinematic chains</li>
+      <li>Occupancy grid mapping algorithms and probabilistic robotics</li>
+      <li>Path planning algorithms (A*, DWA) and cost function tuning</li>
+      <li>ROS2 launch system for complex multi-node configurations</li>
+    </ul>
+
+    <h4 class="popup-section-title">References</h4>
+    <p>
+      This work builds upon official ROS2/Gazebo documentation and tutorials from:
+    </p>
+    <ul>
+      <li>Articulated Robotics (URDF/Gazebo integration tutorials)</li>
+      <li>ROS2 Official Documentation (Nav2, slam_toolbox)</li>
+      <li>Gazebo Classic documentation (plugins, sensors)</li>
+    </ul>
+  `,
 
   };
   const formationDetails = {
